@@ -239,7 +239,7 @@ class Client:
     def __init__(self):
         self.get_socket()
         self.connect_to_server()
-        self.get_file()
+        self.command_input()
 
     def get_socket(self):
 
@@ -256,13 +256,33 @@ class Client:
             print(msg)
             exit()
 
-    def get_file(self):
+    def command_input(self):
 
         ################################################################
         # Generate a file transfer request to the server
         
         # Create the packet cmd field.
-        cmd_field = CMD["GET"].to_bytes(CMD_FIELD_LEN, byteorder='big')
+        cmd = input("Enter your command: ")
+        cmd_field = CMD[cmd].to_bytes(CMD_FIELD_LEN, byteorder='big')
+
+        if cmd == "scan":
+            self.scan()
+        elif cmd == "connect":
+            self.connect()
+        elif cmd == "llist":
+            self.llist()
+        elif cmd == "rlist":
+            self.rlist()
+        elif cmd == "put":
+            self.put()
+        elif cmd == "get":
+            self.get()
+        elif cmd == "bye":
+            print("Closing connection ...")
+            self.socket.close()
+        else:
+            print("Invalid command.")
+            self.command_input()
 
         # Create the packet filename field.
         filename_field_bytes = Server.REMOTE_FILE_NAME.encode(MSG_ENCODING)
