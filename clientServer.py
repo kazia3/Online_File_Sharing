@@ -107,7 +107,7 @@ class Server:
     # This is the file that the client will request using a GET.
     # REMOTE_FILE_NAME = "greek.txt"
     # REMOTE_FILE_NAME = "twochars.txt"
-    REMOTE_FILE_NAME = "ocanada_greek.txt"
+    # REMOTE_FILE_NAME = "ocanada_greek.txt"
     # REMOTE_FILE_NAME = "ocanada_english.txt"
 
     def __init__(self):
@@ -235,9 +235,28 @@ class Client:
     # Define the local file name where the downloaded file will be
     # saved.
     DOWNLOADED_FILE_NAME = "filedownload.txt"
+    
+    HOSTNAME = socket.gethostname()
+
+    # Send the broadcast packet periodically. Set the period
+    # (seconds).
+    BROADCAST_PERIOD = 2
+
+    # Define the message to broadcast.
+    MSG_ENCODING = "utf-8"
+    MESSAGE =  "Hello from " + HOSTNAME 
+    MESSAGE_ENCODED = MESSAGE.encode('utf-8')
+
+    # Use the broadcast-to-everyone IP address or a directed broadcast
+    # address. Define a broadcast port.
+    BROADCAST_ADDRESS = "255.255.255.255" # or 
+    # BROADCAST_ADDRESS = "192.168.1.255"
+    BROADCAST_PORT = 30000
+    ADDRESS_PORT = (BROADCAST_ADDRESS, BROADCAST_PORT)
 
     def __init__(self):
         self.get_socket()
+        self.create_sender_socket()
         self.connect_to_server()
         self.command_input()
 
@@ -248,6 +267,31 @@ class Client:
         except Exception as msg:
             print(msg)
             exit()
+            
+        
+    def create_sender_socket(self):
+        try:
+            # Set up a UDP socket.
+            self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+            ############################################################
+            # Set the option for broadcasting.
+            self.udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            ############################################################
+
+            # Set the listen socket timeout.
+            self.socket.settimeout(SOCKET_TIMEOUT);
+            ############################################################
+            # In more complex situations you may have to bind to an
+            # interface.  This is to ensure that broadcasts are sent out
+            # the correct interface, e.g.,
+            # self.socket.bind(("192.168.1.22", 0))
+            # self.socket.bind(("127.0.0.1", 0))
+            ############################################################            
+                
+        except Exception as msg:
+            print(msg)
+            sys.exit(1)
 
     def connect_to_server(self):
         try:
@@ -284,8 +328,35 @@ class Client:
             print("Invalid command.")
             self.command_input()
 
+    def scan(self):
+        try:
+            for i in range(3):
+                print("Sending to {} ...".format(Client.ADDRESS_PORT))
+                self.udp.sendto(Client.MESSAGE_ENCODED, Client.ADDRESS_PORT)
+                try:
+                    recv_bytes = self.udp.recvfrom(1024)
+                    recv_string = recv_bytes.decode(MSG_ENCODING)
+                    print("Server found: ", recv_string)
+                except:
+                    print("Attempt ", str(i), " of 3: No servers found.")
+                time.sleep(Client.BROADCAST_PERIOD)
+        except Exception as msg:
+            print(msg)
+        except KeyboardInterrupt:
+            print()
+        # finally:
+        #     self.udp.close()
+        #     sys.exit(1)
+        
+    # def connect(self):
+        
+
+    def get(self):
+        cmd_field = CMD["get"].to_bytes(CMD_FIELD_LEN, byteorder='big')
+        
         # Create the packet filename field.
-        filename_field_bytes = Server.REMOTE_FILE_NAME.encode(MSG_ENCODING)
+        filename = input("Enter the name of the file you'd like to download: ")
+        filename_field_bytes = Server.filename.encode(MSG_ENCODING)
 
         # Create the packet filename size field.
         filename_size_field = len(filename_field_bytes).to_bytes(FILENAME_SIZE_FIELD_LEN, byteorder='big')
