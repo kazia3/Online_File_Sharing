@@ -98,7 +98,7 @@ def recv_bytes(sock, bytecount_target):
 
 class Server:
 
-    HOSTNAME = "192.168.2.103"
+    HOSTNAME = "0.0.0.0"
 
     PORT = 50000
     RECV_SIZE = 1024
@@ -520,7 +520,7 @@ class Client:
        
 class UDPServer:
 
-    ALL_IF_ADDRESS = "192.168.2.103"
+    ALL_IF_ADDRESS = "0.0.0.0"
     SERVICE_SCAN_PORT = 30000
     ADDRESS_PORT = (ALL_IF_ADDRESS, SERVICE_SCAN_PORT)
 
